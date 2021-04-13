@@ -4,10 +4,9 @@ from copy import deepcopy
 from matplotlib import pyplot as plt
 from matplotlib import collections as mc
 from shapely.geometry import LineString
+from csp import CSP
 
-import numpy as np
-
-class Graph:
+class Graph(CSP):
     def __init__(self, dimension=10, num_points=10, max_color_num=3):
         self.__relations = []
         self.__max_color_num = max_color_num
@@ -35,7 +34,7 @@ class Graph:
         self.__colors = []
         for index in range(len(self.__points)):
             self.__colors.append(-1)
-        self.graph_color(0)
+        self.backtracking(0, 0)
         self.plot_graph()
         a = 5
     def generate_points(self, num_points, dimension=10):
@@ -47,7 +46,7 @@ class Graph:
         return points
 
     def get_color(self, color_ind):
-        return {0: "red", 1: "black", 2: "blue"}[color_ind]
+        return {0: "red", 1: "black", 2: "blue", 3: "green"}[color_ind]
 
     def make_relations(self, point_to_make_connection, max_connections_num=3):
         possible_connections = max_connections_num - self.get_relations_with_point_count(point_to_make_connection)
@@ -91,16 +90,16 @@ class Graph:
     #             last_length = len(self.__relations)
     #             counter_without_relations = 0
 
-    def graph_color(self, point_ind):
-        for color in range(3):
-            if self.is_save(point_ind, color):
+    def backtracking(self, point_ind, y):
+        for color in range(self.__max_color_num):
+            if self.is_save(point_ind, 0, color):
                 self.__colors[point_ind] = color
                 if point_ind + 1 < len(self.__points):
-                    self.graph_color(point_ind+1)
+                    self.backtracking(point_ind + 1, 0)
                 else:
                     return
 
-    def is_save(self, point_ind, color):
+    def is_save(self, point_ind, y, color):
         for i in range(len(self.__points)):
             if self.__table_conections[point_ind][i] == 1 and color == self.__colors[i]:
                 return False
@@ -185,5 +184,5 @@ class Graph:
             if point == Point(x, y):
                 return self.get_color(self.__colors[self.__points.index(point)])
 
-graph = Graph()
+graph = Graph(num_points=20, max_color_num=4)
 #

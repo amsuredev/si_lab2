@@ -59,7 +59,7 @@ def main():
             add_array.append(-1)
         solution.append(add_array)
 
-    def einshtein(point_ind, option_index):
+    def backtrz(point_ind, option_index):
         #print(solution)
         for val in range(5):
             if is_save(point_ind, option_index, val):
