@@ -4,9 +4,9 @@ from copy import deepcopy
 from matplotlib import pyplot as plt
 from matplotlib import collections as mc
 from shapely.geometry import LineString
-from csp import CSP
 
-class Graph(CSP):
+
+class Graph():
     def __init__(self, dimension=10, num_points=10, max_color_num=3):
         self.__relations = []
         self.__max_color_num = max_color_num
@@ -34,9 +34,18 @@ class Graph(CSP):
         self.__colors = []
         for index in range(len(self.__points)):
             self.__colors.append(-1)
-        self.backtracking(0, 0)
-        self.plot_graph()
-        a = 5
+
+        self.__dziedzina = dict()
+        for point_ind in range(len(self.__points)):
+            self.__dziedzina[point_ind] = list(range(self.__max_color_num))
+
+        self.__colors_count = dict()
+        for i in range(self.__max_color_num):
+            self.__colors_count[i] = 0
+
+        # self.backtracking(0, 0)
+        # self.plot_graph()
+
     def generate_points(self, num_points, dimension=10):
         points = []
         while len(points) != num_points:
@@ -44,6 +53,10 @@ class Graph(CSP):
             if new_point not in points:
                 points.append(new_point)
         return points
+
+    def get_max_colors_sorted(self):
+        down_up_color_values = {k: v for k, v in sorted(self.__colors_count.items(), key=lambda item: item[1], reverse=True)}
+        return down_up_color_values.keys()
 
     def get_color(self, color_ind):
         return {0: "red", 1: "black", 2: "blue", 3: "green"}[color_ind]
@@ -97,13 +110,39 @@ class Graph(CSP):
                 if point_ind + 1 < len(self.__points):
                     self.backtracking(point_ind + 1, 0)
                 else:
+                    #self.__colors[point_ind] = -1
                     return
+        #if point_ind != len(self.__points):
+            #self.__colors[point_ind] = -1
 
     def is_save(self, point_ind, y, color):
         for i in range(len(self.__points)):
             if self.__table_conections[point_ind][i] == 1 and color == self.__colors[i]:
                 return False
         return True
+
+    def forward_checking(self, point_ind):
+        for color in self.__dziedzina[point_ind]:
+            if self.is_save(point_ind, 0, color):
+                self.__colors[point_ind] = color
+                if point_ind + 1 < len(self.__points):
+                    neigbours = self.get_neighbours(self.__points[point_ind])
+                    for neigbour in neigbours:
+                        if color in self.__dziedzina[self.__points.index(neigbour)]:
+                            self.__dziedzina[self.__points.index(neigbour)].remove(color)
+                    self.forward_checking(point_ind + 1)
+                else:
+                    return
+
+    def mrv(self, point_ind):
+        for color in self.get_max_colors_sorted():
+            if self.is_save(point_ind, 0, color):
+                self.__colors[point_ind] = color
+                if point_ind + 1 < len(self.__points):
+                    self.__colors_count[color] += 1
+                    self.mrv(point_ind + 1)
+                else:
+                    return
 
     def get_closed_points(self, point):
         closed_points_not_sorted = deepcopy(self.__points)
@@ -156,6 +195,15 @@ class Graph(CSP):
 
         return point_list.count(result_point) == 2
 
+    def get_neighbours(self, point_check):
+        neighbours = []
+        for relation in self.__relations:
+            if point_check in relation:
+                point_neigbour = relation[0] if relation[0] != point_check else relation[1]
+                neighbours.append(point_neigbour)
+        return neighbours
+
+
     def plot_graph(self):
         edges = list()
         x = list()
@@ -178,11 +226,15 @@ class Graph(CSP):
 
         plt.show()
 
-
     def __get_point_color_name(self, x, y, color_list):
         for point in self.__points:
             if point == Point(x, y):
                 return self.get_color(self.__colors[self.__points.index(point)])
 
-graph = Graph(num_points=20, max_color_num=4)
+
+graph = Graph(num_points=10, max_color_num=3)
+graph.backtracking(0,0)
+#graph.mrv(0)
+#graph.forward_checking(0)
+graph.plot_graph()
 #

@@ -1,7 +1,4 @@
-from csp import CSP
-
-
-class Einshtein(CSP):
+class Einshtein():
     nationality = ["norweg", "dunczyk", "anglik", "niemiec", "szwed"]
     colors = ["zolty", "niebieski", "czerwony", "zielony", "bialy"]
     cigarettes = ["cygar", "light", "bez filtra", "fajka", "mentolowe"]
