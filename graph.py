@@ -12,7 +12,6 @@ class Graph():
         self.__max_color_num = max_color_num
         self.__points = self.generate_points(num_points, dimension)
         self.start_making_relations()
-        # self.start_making_relations_random()
         print("points")
         for point in self.__points:
             print(point)
@@ -43,8 +42,21 @@ class Graph():
         for i in range(self.__max_color_num):
             self.__colors_count[i] = 0
 
-        # self.backtracking(0, 0)
-        # self.plot_graph()
+    @property
+    def max_color_num(self):
+        return self.__max_color_num
+
+    @max_color_num.setter
+    def max_color_num(self, max_color_num):
+        self.__max_color_num = max_color_num
+
+    @property
+    def colors(self):
+        return self.__colors
+
+    @colors.setter
+    def colors(self, colors):
+        self.__colors = colors
 
     def generate_points(self, num_points, dimension=10):
         points = []
@@ -75,33 +87,9 @@ class Graph():
                             if possible_connections == 0:
                                 return
 
-    # def make_relations_new(self, point_to_make_connection, max_connections_num=3):
-    #     possible_connections = max_connections_num - self.get_relations_with_point(point_to_make_connection)
-    #     if possible_connections > 0:
-    #         for point in self.get_closed_points(point_to_make_connection):
-    #             if max_connections_num - self.get_relations_with_point(point) > 0:
-    #                 potential_relation = [point, point_to_make_connection]
-    #                 if point != point_to_make_connection and not self.exist_relation(potential_relation):
-    #                     if not self.have_crosses(potential_relation):
-    #                         self.__relations.append(potential_relation)
-    #                         possible_connections -= 1
-    #                         return
-
     def start_making_relations(self):
         for point in self.__points:
             self.make_relations(point, max_connections_num=self.__max_color_num)
-
-    # def start_making_relations_random(self):
-    #     last_length = len(self.__relations)
-    #     stop = 100
-    #     counter_without_relations = 0
-    #     while counter_without_relations != stop:
-    #         self.make_relations_new(self.__points[randint(0, len(self.__points) - 1)], 3)
-    #         if last_length == len(self.__relations):
-    #             counter_without_relations += 1
-    #         else:
-    #             last_length = len(self.__relations)
-    #             counter_without_relations = 0
 
     def backtracking(self, point_ind, y):
         for color in range(self.__max_color_num):
@@ -110,14 +98,11 @@ class Graph():
                 if point_ind + 1 < len(self.__points):
                     self.backtracking(point_ind + 1, 0)
                 else:
-                    #self.__colors[point_ind] = -1
                     return
-        #if point_ind != len(self.__points):
-            #self.__colors[point_ind] = -1
 
-    def is_save(self, point_ind, y, color):
-        for i in range(len(self.__points)):
-            if self.__table_conections[point_ind][i] == 1 and color == self.__colors[i]:
+    def is_save(self, point_ind, y, color, solution):
+        for i in range(len(solution[point_ind])):
+            if self.__table_conections[y][i] == 1 and color == solution[point_ind][i]:
                 return False
         return True
 
@@ -169,9 +154,6 @@ class Graph():
     def exist_relation(self, relation_check):
         return relation_check in self.__relations or relation_check.reverse() in self.__relations
 
-    # def have_crosses_new(self, relations_check):
-    #     for relation in self.__relations:
-
     def have_crosses(self, relation_check):
         for relation in self.__relations:
             if not self.match_segments(relation[0], relation[1], relation_check[0], relation_check[1]):
@@ -183,7 +165,6 @@ class Graph():
         line_1 = LineString([(point_11.x, point_11.y), (point_12.x, point_12.y)])
         line_2 = LineString([(point_21.x, point_21.y), (point_22.x, point_22.y)])
         point_inter = line_1.intersection(line_2)
-        # print(point_inter.x)
 
         if isinstance(point_inter, LineString):
             return True
@@ -232,9 +213,10 @@ class Graph():
                 return self.get_color(self.__colors[self.__points.index(point)])
 
 
-graph = Graph(num_points=10, max_color_num=3)
-graph.backtracking(0,0)
-#graph.mrv(0)
-#graph.forward_checking(0)
-graph.plot_graph()
-#
+if __name__ == "__main__":
+    graph = Graph(num_points=10, max_color_num=3)
+    graph.backtracking(0,0)
+    #graph.mrv(0)
+    #graph.forward_checking(0)
+    graph.plot_graph()
+    #
