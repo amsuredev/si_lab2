@@ -38,11 +38,12 @@ class Problem:
         return self.__check(point_ind, y, color, self.__solution)
 
     def change_dziedzina(self, x, y ,val):
-        return self.change_dziedzina_pers(x, y, val)
+        return self.change_dziedzina_pers(x, y, val, self.__dziedzina)
 
 
     def backtracking_statistic(self, x, y):
         for value in self.d:
+            Problem.counter_backtracking += 1
             if self.is_save(x, y, value):
                 self.__solution[x][y] = value
                 if y + 1 < self.__y:
@@ -51,6 +52,31 @@ class Problem:
                     self.solutions.append(deepcopy(self.__solution))
                     self.__solution[x][y] = -1
         self.__solution[x][y] = -1
+        return
+
+    def forward_checking_statistic(self, point_ind, option_index):
+        dziedzina_copy = deepcopy(self.__dziedzina)
+        array_loop = deepcopy(self.__dziedzina[point_ind, option_index])
+        for val in array_loop:
+            Problem.counter_forward_checking += 1
+            if self.is_save(point_ind, option_index, val):
+                self.solution[point_ind][option_index] = val
+                if option_index != self.__y - 1:
+                    self.change_dziedzina(point_ind, option_index, val)
+                    self.forward_checking_statistic(point_ind, option_index + 1)
+                    self.__dziedzina = deepcopy(dziedzina_copy)
+                elif option_index == self.__y - 1 and point_ind != self.__x - 1:
+                    self.change_dziedzina(point_ind, option_index, val)
+                    self.forward_checking_statistic(point_ind + 1, 0)
+                    self.__dziedzina = deepcopy(dziedzina_copy)
+                else:
+                    #print("success", self.solution)
+                    self.solutions.append(deepcopy(self.solution))
+                    #print(Einshtein.counter_forward_checking)
+                    self.solution[point_ind][option_index] = -1
+                    #self.__dziedzina = dziedzina_copy
+        self.solution[point_ind][option_index] = -1
+        self.__dziedzina = dziedzina_copy
         return
 
     def backtracking_first_solution(self, x, y):
@@ -73,52 +99,21 @@ class Problem:
         self.solution[x][y] = -1
         return
 
-    def forward_checking(self, point_ind, option_index):
-        # print(solution)
-        dziedzina_copy = deepcopy(self.__dziedzina)
-        for val in self.__dziedzina[point_ind, option_index]:
-            Problem.counter_forward_checking += 1
-            if self.is_save(point_ind, option_index, val):
-                self.solution[point_ind][option_index] = val
-                if option_index != 4:
-                    self.change_dziedzina(point_ind, option_index, val)
-                    #print(self.__solution)
-                    if self.forward_checking(point_ind, option_index + 1):
-                        return True
-                    else:
-                        self.__dziedzina = deepcopy(dziedzina_copy)
-                elif option_index == 4 and point_ind != 4:
-                    self.change_dziedzina(point_ind, option_index, val)
-                    #print(self.__solution)
-                    if self.forward_checking(point_ind + 1, 0):
-                        return True
-                    else:
-                        self.__dziedzina = deepcopy(dziedzina_copy)
-                else:
-                    print("success", self.solution)
-                    print("Counter forward checking: {count}".format(count=Problem.counter_forward_checking))
-                    return True
-        self.solution[point_ind][option_index] = -1
-        self.__dziedzina = deepcopy(dziedzina_copy)
-        return False
-
-    def forward_checking_new(self, point_ind, option_index):
+    def forward_checking_first_solution(self, point_ind, option_index):
         dziedzina_copy = deepcopy(self.__dziedzina)
         for val in self.__dziedzina[point_ind, option_index]:
             Einshtein.counter_backtracking += 1
             if self.is_save(point_ind, option_index, val):
                 self.solution[point_ind][option_index] = val
-                if option_index != 4:
+                if option_index != self.__y - 1:
                     self.change_dziedzina(point_ind, option_index, val)
-                    print(self.solution)
-                    if self.forward_checking(point_ind, option_index + 1):
+                    if self.forward_checking_first_solution(point_ind, option_index + 1):
                         return True
                     else:
                         self.__dziedzina = deepcopy(dziedzina_copy)
-                elif option_index == 4 and point_ind != 4:
+                elif option_index == self.__y - 1 and point_ind != self.__x - 1:
                     self.change_dziedzina(point_ind, option_index, val)
-                    print(self.solution)
-                    if self.forward_checking(point_ind + 1, 0):
+                    if self.forward_checking_first_solution(point_ind + 1, 0):
                         return True
                     else:
                         self.__dziedzina = deepcopy(dziedzina_copy)
@@ -146,17 +141,36 @@ if __name__ == "__main__":
     # graph = Graph(num_points=10, max_color_num=3)
     # graph_problem = Problem(1, 10, graph.is_save, graph.max_color_num)
     # graph_problem.backtracking_statistic(0, 0)
-    # graph.colors = graph_problem.solutions[0][0]
-    # graph.plot_graph()
+    # print("Num of soltions backtracking: {}".format(len(graph_problem.solutions)))
+    # graph.colors = graph_problem.solutions[0]
 
+    #graph.plot_graph()
+    #
     # einshtein = Einshtein()
     # einshtein_problem = Problem(5, 5, einshtein.is_save, 5)
     # einshtein_problem.backtracking_first_solution(0, 0)
     # einshtein.solution = einshtein_problem.solution
     # einshtein.print_solution()
 
-    einshtein1 = Einshtein()
-    einshtein_problem1 = Problem(5, 5, einshtein1.is_save, d=None, dziedzina=einshtein1.dziedzina, change_dziedzina=einshtein1.change_dziedzina)
-    einshtein_problem1.forward_checking_new(0, 0)
-    einshtein1.solution = einshtein_problem1.solution
-    einshtein1.print_solution()
+    # einshtein1 = Einshtein()
+    # einshtein_problem1 = Problem(5, 5, einshtein1.is_save, d=None, dziedzina=einshtein1.dziedzina, change_dziedzina=einshtein1.change_dziedzina)
+    # einshtein_problem1.forward_checking_first_solution(0, 0)
+    # einshtein1.solution = einshtein_problem1.solution
+    # einshtein1.print_solution()
+
+    graph3 = Graph(num_points=10, max_color_num=3)
+    graph4 = deepcopy(graph3)
+    graph_problem = Problem(1, 10, graph3.is_save, d=None, dziedzina=graph3.dziedzina, change_dziedzina=graph3.change_dziedzina)
+    graph_problem.forward_checking_statistic(0, 0)
+    #print(graph_problem.solution)
+    print("Solutions find count: {count}".format(count=len(graph_problem.solutions)))
+    print("Forward checking counter: {count}".format(count=Problem.counter_forward_checking))
+
+    Problem.counter_forward_checking = 0
+
+    graph_problem4 = Problem(1, 10, graph4.is_save, d=graph4.max_color_num, dziedzina=graph4.dziedzina,
+                            change_dziedzina=graph4.change_dziedzina)
+    graph_problem4.backtracking_statistic(0, 0)
+    # print(graph_problem.solution)
+    print("Solutions find count: {count}".format(count=len(graph_problem4.solutions)))
+    print("Backtracking counter: {count}".format(count=Problem.counter_backtracking))

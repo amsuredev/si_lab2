@@ -12,13 +12,13 @@ class Graph():
         self.__max_color_num = max_color_num
         self.__points = self.generate_points(num_points, dimension)
         self.start_making_relations()
-        print("points")
-        for point in self.__points:
-            print(point)
-        for relation in self.__relations:
-            print("relations")
-            print(relation[0])
-            print(relation[1])
+        # print("points")
+        # for point in self.__points:
+        #     print(point)
+        # for relation in self.__relations:
+        #     print("relations")
+        #     print(relation[0])
+        #     print(relation[1])
         self.__table_conections = []
 
         for point in self.__points:
@@ -36,7 +36,7 @@ class Graph():
 
         self.__dziedzina = dict()
         for point_ind in range(len(self.__points)):
-            self.__dziedzina[point_ind] = list(range(self.__max_color_num))
+            self.__dziedzina[0, point_ind] = list(range(self.__max_color_num))
 
         self.__colors_count = dict()
         for i in range(self.__max_color_num):
@@ -57,6 +57,14 @@ class Graph():
     @colors.setter
     def colors(self, colors):
         self.__colors = colors
+
+    @property
+    def dziedzina(self):
+        return self.__dziedzina
+
+    @dziedzina.setter
+    def dziedzina(self, dziedzina):
+        self.__dziedzina = dziedzina
 
     def generate_points(self, num_points, dimension=10):
         points = []
@@ -106,15 +114,23 @@ class Graph():
                 return False
         return True
 
+    #def change_dziedzina(self, x, y, val, dziedzina):
+
+    def change_dziedzina(self, x, y, color, dziedzina):
+        neigbours = self.get_neighbours(self.__points[y])
+        for neigbour in neigbours:
+            if color in dziedzina[0, self.__points.index(neigbour)]:
+                dziedzina[0, self.__points.index(neigbour)].remove(color)
+
     def forward_checking(self, point_ind):
-        for color in self.__dziedzina[point_ind]:
+        for color in self.__dziedzina[0, point_ind]:
             if self.is_save(point_ind, 0, color):
                 self.__colors[point_ind] = color
                 if point_ind + 1 < len(self.__points):
                     neigbours = self.get_neighbours(self.__points[point_ind])
                     for neigbour in neigbours:
-                        if color in self.__dziedzina[self.__points.index(neigbour)]:
-                            self.__dziedzina[self.__points.index(neigbour)].remove(color)
+                        if color in self.__dziedzina[0, self.__points.index(neigbour)]:
+                            self.__dziedzina[0, self.__points.index(neigbour)].remove(color)
                     self.forward_checking(point_ind + 1)
                 else:
                     return
