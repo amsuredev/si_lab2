@@ -2,7 +2,8 @@ from graph import Graph
 from copy import deepcopy
 from einshtein import Einshtein
 class Problem:
-    def __init__(self, x_size, y_size, check, d):
+    counter = 0
+    def __init__(self, x_size, y_size, check, d, dziedzina=None):
         self.__solution = []
         self.__x = x_size
         self.__y = y_size
@@ -16,6 +17,7 @@ class Problem:
         self.d = list(range(d))
 
         self.solutions = []
+        self.dziedzina = dziedzina
 
     @property
     def solution(self):
@@ -43,19 +45,26 @@ class Problem:
 
     def backtracking_first_solution(self, x, y):
         for val in self.d:
+            Problem.counter += 1
             if self.is_save(x, y, val):
                 self.solution[x][y] = val
                 if y != self.__y - 1:
+                    #print(self.solution)
                     if self.backtracking_first_solution(x, y+1):
                         return True
                 elif y == self.__y - 1 and x != self.__x - 1:
                     if self.backtracking_first_solution(x + 1, 0):
+                        #print(self.solution)
                         return True
                 else:
-                    print("success; ", "solution found: ", self.__solution)
+                    #print("success; ", "solution found: ", self.__solution)
+                    print("Count: {count}".format(count=Problem.counter))
                     return True
         self.solution[x][y] = -1
         return
+
+    def forward_checking_first_solution(self, x, y):
+        pass
 
     def constraint(self):
         pass
@@ -69,11 +78,12 @@ if __name__ == "__main__":
     #solution_plot = graph_problem.solutions[0][0]
     #graph.colors = solution_plot
     #graph.plot_graph()
-    graph = Graph(num_points=10, max_color_num=3)
-    graph_problem = Problem(1, 10, graph.is_save, graph.max_color_num)
-    graph_problem.backtracking_first_solution(0, 0)
-    graph.colors = graph_problem.solution[0]
-    graph.plot_graph()
+
+    # graph = Graph(num_points=10, max_color_num=3)
+    # graph_problem = Problem(1, 10, graph.is_save, graph.max_color_num)
+    # graph_problem.backtracking_first_solution(0, 0)
+    # graph.colors = graph_problem.solution[0]
+    # graph.plot_graph()
 
     einshtein = Einshtein()
     einshtein_problem = Problem(5, 5, einshtein.is_save, 5)

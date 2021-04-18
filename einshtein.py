@@ -1,9 +1,14 @@
+from copy import deepcopy
+
+
 class Einshtein():
     nationality = ["norweg", "dunczyk", "anglik", "niemiec", "szwed"]
     colors = ["zolty", "niebieski", "czerwony", "zielony", "bialy"]
     cigarettes = ["cygar", "light", "bez filtra", "fajka", "mentolowe"]
     drinks = ["herbata", "mleko", "woda", "piwo", "kawa"]
     pet = ["kot", "ptak", "pies", "kon", "rybka"]
+
+    counter = 0
 
     def __init__(self):
         self.solution = []
@@ -12,6 +17,50 @@ class Einshtein():
             for j in range(5):
                 add_array.append(-1)
             self.solution.append(add_array)
+
+        self.__dziedzina = dict()
+        for i in range(5):
+            for j in range(5):
+                self.__dziedzina[i,j] = list(range(5))
+
+
+
+    def forward_checking(self, point_ind, option_index):
+        # print(solution)
+        dziedzina_copy = deepcopy(self.__dziedzina)
+        for val in self.__dziedzina[point_ind, option_index]:
+            Einshtein.counter += 1
+            if self.is_save(point_ind, option_index, val, self.solution):
+                self.solution[point_ind][option_index] = val
+                if option_index != 4:
+                    self.change_dziedzina(point_ind, option_index, val)
+                    print(self.solution)
+                    if self.forward_checking(point_ind, option_index + 1):
+                        return True
+                    else:
+                        self.__dziedzina = deepcopy(dziedzina_copy)
+                elif option_index == 4 and point_ind != 4:
+                    self.change_dziedzina(point_ind, option_index, val)
+                    print(self.solution)
+                    if self.forward_checking(point_ind + 1, 0):
+                        return True
+                    else:
+                        self.__dziedzina = deepcopy(dziedzina_copy)
+                else:
+                    print("success", self.solution)
+                    # for home_index in range(len(self.solution)):
+                    #     print(home_index)
+                    #     data = []
+                    #     data.append(self.index_map_color(self.solution[home_index][0]))
+                    #     data.append(self.index_map_drink(self.solution[home_index][1]))
+                    #     data.append(self.index_map_nationality(self.solution[home_index][2]))
+                    #     data.append(self.index_map_cig(self.solution[home_index][3]))
+                    #     data.append(self.index_map_pet(self.solution[home_index][4]))
+                    #     print(data)
+                    return True
+        self.solution[point_ind][option_index] = -1
+        self.__dziedzina = dziedzina_copy
+        return False
 
     @classmethod
     def option_name_index(self, name):
@@ -250,6 +299,224 @@ class Einshtein():
             return True
         return kawa == zielony
 
+    def change_all_dif(self, x, y, val):
+        self.__dziedzina[x,y] = [val]
+        for i in range(5):
+            if x != i:
+                if val in self.__dziedzina[i, y]:
+                    self.__dziedzina[i, y].remove(val)
+
+    def change_anglik_eq_czerwony(self, x, y, val):
+        if y == 2:
+            if self.index_map_color(val) == "anglik":
+                self.delete_values_from_dziedzina(0, self.option_name_index("czerwony"))
+                self.__dziedzina[x, 0] = [self.option_name_index("czerwony")]
+
+        if y == 0:
+            if self.index_map_color(val) == "czerwony":
+                self.delete_values_from_dziedzina(2, self.option_name_index("anglik"))
+                self.__dziedzina[x, 2] = [self.option_name_index("anglik")]
+
+    def change_ziel_plus_1_eq_bialy(self, x, y, val):
+        if y == 0:
+            if self.index_map_color(val) == "zielony":
+                self.delete_values_from_dziedzina(y, self.option_name_index("bialy"))
+                x_after = x + 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, y].append(self.option_name_index("bialy"))
+            if self.index_map_color(val) == "bialy":
+                self.delete_values_from_dziedzina(y, self.option_name_index("zielony"))
+                x_before = x - 1
+                if x_before in range(5):
+                    self.__dziedzina[x_before, y].append(self.option_name_index("zielony"))
+
+    def change_dunczyk_eq_herbata(self, x, y, val):
+        if y == 2:
+            if self.index_map_color(val) == "dunczyk":
+                self.delete_values_from_dziedzina(1, self.option_name_index("herbata"))
+                self.__dziedzina[x, 1] = [self.option_name_index("herbata")]
+
+        if y == 1:
+            if self.index_map_color(val) == "herbata":
+                self.delete_values_from_dziedzina(2, self.option_name_index("dunczyk"))
+                self.__dziedzina[x, 2] = [self.option_name_index("dunczyk")]
+
+    def change_abs_light_minus_1_eq_koty(self, x, y, val):
+        if y == 3:
+            if self.index_map_color(val) == "light":
+                self.delete_values_from_dziedzina(4, self.option_name_index("kot"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 4].append(self.option_name_index("kot"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 4].append(self.option_name_index("kot"))
+
+        if y == 4:
+            if self.index_map_color(val) == "kot":
+                self.delete_values_from_dziedzina(3, self.option_name_index("light"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 3].append(self.option_name_index("light"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 3].append(self.option_name_index("light"))
+
+    def change_zolty_eq_cygar(self, x, y, val):
+        if y == 0:
+            if self.index_map_color(val) == "zolty":
+                self.delete_values_from_dziedzina(3, self.option_name_index("cygar"))
+                self.__dziedzina[x, 3] = [self.option_name_index("cygar")]
+
+        if y == 3:
+            if self.index_map_color(val) == "cygar":
+                self.delete_values_from_dziedzina(0, self.option_name_index("zolty"))
+                self.__dziedzina[x, 0] = [self.option_name_index("zolty")]
+
+    def change_niemiec_eq_fajka(self, x, y, val):
+        if y == 2:
+            if self.index_map_color(val) == "niemiec":
+                self.delete_values_from_dziedzina(3, self.option_name_index("fajka"))
+                self.__dziedzina[x, 3] = [self.option_name_index("fajka")]
+
+        if y == 3:
+            if self.index_map_color(val) == "fajka":
+                self.delete_values_from_dziedzina(2, self.option_name_index("niemiec"))
+                self.__dziedzina[x, 2] = [self.option_name_index("niemiec")]
+
+    def change_abs_light_minus_woda_eq_1(self, x, y, val):
+        if y == 3:
+            if self.index_map_color(val) == "light":
+                self.delete_values_from_dziedzina(1, self.option_name_index("woda"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 1].append(self.option_name_index("woda"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 1].append(self.option_name_index("woda"))
+
+        if y == 1:
+            if self.index_map_color(val) == "woda":
+                self.delete_values_from_dziedzina(3, self.option_name_index("light"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 3].append(self.option_name_index("light"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 3].append(self.option_name_index("light"))
+
+    def change_bez_filtra_eq_ptaki(self, x, y, val):
+        if y == 3:
+            if self.index_map_color(val) == "bez filtra":
+                self.delete_values_from_dziedzina(4, self.option_name_index("ptak"))
+                self.__dziedzina[x, 4] = [self.option_name_index("ptak")]
+
+        if y == 4:
+            if self.index_map_color(val) == "ptak":
+                self.delete_values_from_dziedzina(3, self.option_name_index("bez filtra"))
+                self.__dziedzina[x, 3] = [self.option_name_index("bez filtra")]
+
+    def change_szwed_eq_psy(self, x, y, val):
+        if y == 2:
+            if self.index_map_color(val) == "szwed":
+                self.delete_values_from_dziedzina(4, self.option_name_index("pies"))
+                self.__dziedzina[x, 4] = [self.option_name_index("pies")]
+
+        if y == 4:
+            if self.index_map_color(val) == "pies":
+                self.delete_values_from_dziedzina(2, self.option_name_index("szwed"))
+                self.__dziedzina[x, 2] = [self.option_name_index("szwed")]
+
+    def change_abs_norweg_minus_niebieski_eq_1(self, x, y, val):
+        if y == 2:
+            if self.index_map_color(val) == "norweg":
+                self.delete_values_from_dziedzina(0, self.option_name_index("niebieski"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 0].append(self.option_name_index("niebieski"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 0].append(self.option_name_index("niebieski"))
+
+        if y == 0:
+            if self.index_map_color(val) == "niebieski":
+                self.delete_values_from_dziedzina(2, self.option_name_index("norweg"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 2].append(self.option_name_index("norweg"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 2].append(self.option_name_index("norweg"))
+
+    def change_abs_kon_zolty(self, x, y, val):
+        if y == 4:
+            if self.index_map_color(val) == "kon":
+                self.delete_values_from_dziedzina(0, self.option_name_index("zolty"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 0].append(self.option_name_index("zolty"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 0].append(self.option_name_index("zolty"))
+
+        if y == 0:
+            if self.index_map_color(val) == "zolty":
+                self.delete_values_from_dziedzina(4, self.option_name_index("kon"))
+                x_after = x + 1
+                x_before = x - 1
+                if x_after in range(5):
+                    self.__dziedzina[x_after, 4].append(self.option_name_index("kon"))
+                if x_before in range(5):
+                    self.__dziedzina[x_before, 4].append(self.option_name_index("kon"))
+
+    def change_mentolowe_eq_piwo(self, x, y, val):
+        if y == 3:
+            if self.index_map_color(val) == "mentolowe":
+                self.delete_values_from_dziedzina(1, self.option_name_index("piwo"))
+                self.__dziedzina[x, 1] = [self.option_name_index("piwo")]
+
+        if y == 1:
+            if self.index_map_color(val) == "piwo":
+                self.delete_values_from_dziedzina(3, self.option_name_index("mentolowe"))
+                self.__dziedzina[x, 3] = [self.option_name_index("mentolowe")]
+
+    def change_zielony_eq_kawa(self, x, y, val):
+        if y == 0:
+            if self.index_map_color(val) == "zielony":
+                self.delete_values_from_dziedzina(1, self.option_name_index("kawa"))
+                self.__dziedzina[x, 1] = [self.option_name_index("kawa")]
+
+        if y == 1:
+            if self.index_map_color(val) == "kawa":
+                self.delete_values_from_dziedzina(0, self.option_name_index("zielony"))
+                self.__dziedzina[x, 0] = [self.option_name_index("zielony")]
+
+    def delete_values_from_dziedzina(self, y, val):
+        for home in range(5):
+            if val in self.__dziedzina[home, y]:
+                self.__dziedzina[home, y].remove(val)
+
+    def change_dziedzina(self, x, y, val):
+        pass
+        self.change_all_dif(x, y, val)
+        self.change_anglik_eq_czerwony(x, y, val)
+        self.change_ziel_plus_1_eq_bialy(x, y, val)
+        self.change_dunczyk_eq_herbata(x, y, val)
+        self.change_abs_light_minus_1_eq_koty(x, y, val)
+        self.change_zolty_eq_cygar(x, y, val)
+        self.change_niemiec_eq_fajka(x, y, val)
+        self.change_abs_light_minus_woda_eq_1(x, y, val)
+        self.change_bez_filtra_eq_ptaki(x, y, val)
+        self.change_szwed_eq_psy(x, y, val)
+        self.change_abs_norweg_minus_niebieski_eq_1(x, y, val)
+        self.change_abs_kon_zolty(x, y, val)
+        self.change_mentolowe_eq_piwo(x, y, val)
+        self.change_zielony_eq_kawa(x, y, val)
+
 
 if __name__ == "__main__":
-    Einshtein().backtracking(point_ind=0, option_index=0)
+    #Einshtein().backtracking(point_ind=0, option_index=0)
+    e = Einshtein()
+    e.forward_checking(0, 0)
+    print(Einshtein.counter)
+    e.print_solution()
