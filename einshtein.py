@@ -8,7 +8,8 @@ class Einshtein():
     drinks = ["herbata", "mleko", "woda", "piwo", "kawa"]
     pet = ["kot", "ptak", "pies", "kon", "rybka"]
 
-    counter = 0
+    counter_backtracking = 0
+    counter_forward_checking = 0
 
     def __init__(self):
         self.solution = []
@@ -24,39 +25,36 @@ class Einshtein():
                 self.__dziedzina[i,j] = list(range(5))
 
 
+    @property
+    def dziedzina(self):
+        return self.__dziedzina
+
+    @dziedzina.setter
+    def dziedzina(self, dziedzina):
+        self.__dziedzina = dziedzina
 
     def forward_checking(self, point_ind, option_index):
         # print(solution)
         dziedzina_copy = deepcopy(self.__dziedzina)
         for val in self.__dziedzina[point_ind, option_index]:
-            Einshtein.counter += 1
+            Einshtein.counter_forward_checking += 1
             if self.is_save(point_ind, option_index, val, self.solution):
                 self.solution[point_ind][option_index] = val
                 if option_index != 4:
                     self.change_dziedzina(point_ind, option_index, val)
-                    print(self.solution)
                     if self.forward_checking(point_ind, option_index + 1):
                         return True
                     else:
                         self.__dziedzina = deepcopy(dziedzina_copy)
                 elif option_index == 4 and point_ind != 4:
                     self.change_dziedzina(point_ind, option_index, val)
-                    print(self.solution)
                     if self.forward_checking(point_ind + 1, 0):
                         return True
                     else:
                         self.__dziedzina = deepcopy(dziedzina_copy)
                 else:
-                    print("success", self.solution)
-                    # for home_index in range(len(self.solution)):
-                    #     print(home_index)
-                    #     data = []
-                    #     data.append(self.index_map_color(self.solution[home_index][0]))
-                    #     data.append(self.index_map_drink(self.solution[home_index][1]))
-                    #     data.append(self.index_map_nationality(self.solution[home_index][2]))
-                    #     data.append(self.index_map_cig(self.solution[home_index][3]))
-                    #     data.append(self.index_map_pet(self.solution[home_index][4]))
-                    #     print(data)
+                    #print("success", self.solution)
+                    print("counter forward checking {counter}".format(counter=Einshtein.counter_forward_checking))
                     return True
         self.solution[point_ind][option_index] = -1
         self.__dziedzina = dziedzina_copy
@@ -106,7 +104,8 @@ class Einshtein():
     def backtracking(self, point_ind, option_index):
         # print(solution)
         for val in range(5):
-            if self.is_save(point_ind, option_index, val):
+            Einshtein.counter_backtracking += 1
+            if self.is_save(point_ind, option_index, val, self.solution):
                 self.solution[point_ind][option_index] = val
                 if option_index != 4:
                     if self.backtracking(point_ind, option_index + 1):
@@ -115,7 +114,8 @@ class Einshtein():
                     if self.backtracking(point_ind + 1, 0):
                         return True
                 else:
-                    print("success", self.solution)
+                    print("counter backtracking: {counter}".format(counter=Einshtein.counter_backtracking))
+                    #print("success", self.solution)
                     self.print_solution()
                     return True
         self.solution[point_ind][option_index] = -1
@@ -154,7 +154,7 @@ class Einshtein():
                                                                     if self.zielony_eq_kawa(solution):
                                                                         return True
         else:
-            self.solution[point_ind][option_index] = before_val
+            solution[point_ind][option_index] = before_val
             return False
 
     def all_dif(self, solution):
@@ -497,7 +497,6 @@ class Einshtein():
                 self.__dziedzina[home, y].remove(val)
 
     def change_dziedzina(self, x, y, val):
-        pass
         self.change_all_dif(x, y, val)
         self.change_anglik_eq_czerwony(x, y, val)
         self.change_ziel_plus_1_eq_bialy(x, y, val)
@@ -516,7 +515,10 @@ class Einshtein():
 
 if __name__ == "__main__":
     #Einshtein().backtracking(point_ind=0, option_index=0)
+    e1=Einshtein()
+    e1.backtracking(0, 0)
+    e1.print_solution()
+
     e = Einshtein()
     e.forward_checking(0, 0)
-    print(Einshtein.counter)
     e.print_solution()
